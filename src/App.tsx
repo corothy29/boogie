@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Area,
-  AreaChart,
   CartesianGrid,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -11,8 +11,6 @@ import {
 import {
   AlertTriangle,
   ArrowRight,
-  BarChart3,
-  Bot,
   Building2,
   CheckCircle2,
   Copy,
@@ -23,9 +21,7 @@ import {
   Receipt,
   RotateCcw,
   ShieldCheck,
-  Sparkles,
   Upload,
-  Wallet,
   X,
   XCircle,
 } from "lucide-react";
@@ -141,79 +137,57 @@ function DashboardPage({ state, onNavigate }: { state: BoogieState; onNavigate: 
   const runwayWarning = metrics.runwayMonths < 14;
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-3xl space-y-10">
       <div>
-        <h2 className="text-2xl font-bold text-white">AI CFO 메인 대시보드</h2>
-        <p className="mt-1 text-sm text-slate-400">분개 데이터 기반 실시간 재무 지표</p>
+        <h2 className="text-lg font-medium text-white">대시보드</h2>
+        <p className="mt-1 text-sm text-slate-500">분개 {state.journal.length}건 반영</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-          <div className="flex items-center gap-2 text-slate-400">
-            <Wallet className="h-4 w-4" />
-            <span className="text-sm">현재 통장 잔고</span>
-          </div>
-          <p className="mt-3 text-3xl font-bold text-white">{formatKRW(metrics.bankBalance)}</p>
-          <p className="mt-1 text-xs text-slate-500">분개 {state.journal.length}건 반영</p>
+      <div className="grid grid-cols-3 gap-8 border-b border-slate-800 pb-10">
+        <div>
+          <p className="text-xs text-slate-500">통장 잔고</p>
+          <p className="mt-1 text-xl font-semibold text-white">{formatKRW(metrics.bankBalance)}</p>
         </div>
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-          <div className="flex items-center gap-2 text-slate-400">
-            <BarChart3 className="h-4 w-4 text-emerald-400" />
-            <span className="text-sm">실질 가용 자금</span>
-          </div>
-          <p className="mt-3 text-3xl font-bold text-emerald-400">{formatKRW(metrics.availableFunds)}</p>
-          <p className="mt-1 text-xs text-slate-500">※ 선수수익 {formatKRW(state.prepaidRevenue)} 제외</p>
+        <div>
+          <p className="text-xs text-slate-500">가용 자금</p>
+          <p className="mt-1 text-xl font-semibold text-white">{formatKRW(metrics.availableFunds)}</p>
+          <p className="mt-0.5 text-xs text-slate-600">선수수익 제외</p>
         </div>
-        <div className={`rounded-xl border bg-slate-900/60 p-5 ${runwayWarning ? "runway-warning border-amber-500/40" : "border-slate-800"}`}>
-          <div className={`flex items-center gap-2 ${runwayWarning ? "text-amber-500" : "text-emerald-400"}`}>
-            <AlertTriangle className="h-4 w-4" />
-            <span className="text-sm">남은 런웨이 (Runway)</span>
-          </div>
-          <p className={`mt-3 text-4xl font-bold ${runwayWarning ? "text-amber-500" : "text-emerald-400"}`}>
+        <div>
+          <p className="text-xs text-slate-500">런웨이</p>
+          <p className={`mt-1 text-xl font-semibold ${runwayWarning ? "text-amber-400" : "text-white"}`}>
             {metrics.runwayMonths >= 99 ? "∞" : `${metrics.runwayMonths.toFixed(1)}개월`}
           </p>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 lg:col-span-2">
-          <h3 className="mb-4 text-sm font-medium text-slate-300">월별 자금 소진율 (Burn Rate) 추이</h3>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={metrics.burnRateData}>
-                <defs>
-                  <linearGradient id="burnGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${v / 100}만`} />
-                <Tooltip
-                  contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
-                  formatter={(v: number) => [`${v.toLocaleString()}만 원`, "소진액"]}
-                />
-                <Area type="monotone" dataKey="burn" stroke="#3b82f6" fill="url(#burnGradient)" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+      <div>
+        <p className="mb-6 text-xs text-slate-500">월별 소진율</p>
+        <div className="h-48">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={metrics.burnRateData}>
+              <CartesianGrid stroke="#1e293b" strokeDasharray="0" vertical={false} />
+              <XAxis dataKey="month" stroke="#475569" fontSize={11} tickLine={false} axisLine={false} />
+              <YAxis stroke="#475569" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v / 100}만`} width={40} />
+              <Tooltip
+                contentStyle={{ background: "#0f172a", border: "none", borderRadius: 6, fontSize: 12 }}
+                formatter={(v: number) => [`${v.toLocaleString()}만`, "소진"]}
+              />
+              <Line type="monotone" dataKey="burn" stroke="#64748b" strokeWidth={1.5} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
+      </div>
 
-        <div className="rounded-xl border border-blue-500/30 bg-slate-900/60 p-5">
-          <div className="mb-3 flex items-center gap-2 text-blue-500">
-            <Bot className="h-5 w-5" />
-            <h3 className="font-semibold">AI CFO Insight</h3>
-          </div>
-          <p className="text-sm leading-relaxed text-slate-300">{insight}</p>
-          <div className="mt-4 space-y-2">
-            <button type="button" onClick={() => onNavigate("admin")} className="w-full rounded-lg bg-blue-500/10 px-3 py-2 text-left text-xs text-blue-300 hover:bg-blue-500/20">
-              <Sparkles className="mr-1 inline h-3 w-3" /> 지원사업 확인 →
-            </button>
-            <button type="button" onClick={() => onNavigate("approval")} className="w-full rounded-lg bg-blue-500/10 px-3 py-2 text-left text-xs text-blue-300 hover:bg-blue-500/20">
-              <ShieldCheck className="mr-1 inline h-3 w-3" /> 거래 검증 실행 →
-            </button>
-          </div>
+      <div className="border-t border-slate-800 pt-8">
+        <p className="text-sm text-slate-400">{insight}</p>
+        <div className="mt-3 flex gap-4 text-sm">
+          <button type="button" onClick={() => onNavigate("admin")} className="text-slate-400 underline-offset-2 hover:text-white hover:underline">
+            지원사업
+          </button>
+          <button type="button" onClick={() => onNavigate("approval")} className="text-slate-400 underline-offset-2 hover:text-white hover:underline">
+            거래 검증
+          </button>
         </div>
       </div>
     </div>
