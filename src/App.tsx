@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import {
   AlertTriangle,
+  ArrowRight,
   BarChart3,
   Bot,
   Building2,
@@ -25,6 +26,7 @@ import {
 } from "lucide-react";
 
 type Page = "dashboard" | "accounting" | "approval" | "admin";
+type View = "landing" | "app";
 
 const burnRateData = [
   { month: "1월", burn: 4200 },
@@ -53,6 +55,37 @@ const navItems: { id: Page; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "admin", label: "스마트 행정", icon: Building2 },
   { id: "accounting", label: "스마트 장부", icon: Receipt },
   { id: "approval", label: "거래 검증", icon: ShieldCheck },
+];
+
+const featureCards: { id: Page; title: string; desc: string; icon: typeof LayoutDashboard; color: string }[] = [
+  {
+    id: "dashboard",
+    title: "AI CFO 대시보드",
+    desc: "실시간 자금 흐름과 런웨이를 한눈에",
+    icon: LayoutDashboard,
+    color: "text-blue-400",
+  },
+  {
+    id: "admin",
+    title: "스마트 행정",
+    desc: "세무 일정과 지원사업 AI 큐레이션",
+    icon: Building2,
+    color: "text-amber-400",
+  },
+  {
+    id: "accounting",
+    title: "스마트 장부",
+    desc: "영수증 업로드만으로 자동 분개",
+    icon: Receipt,
+    color: "text-emerald-400",
+  },
+  {
+    id: "approval",
+    title: "거래 검증",
+    desc: "중복 청구와 허위 거래 AI 차단",
+    icon: ShieldCheck,
+    color: "text-rose-400",
+  },
 ];
 
 function formatKRW(n: number) {
@@ -408,16 +441,76 @@ function AdminPage() {
   );
 }
 
+function LandingPage({ onEnter }: { onEnter: (page: Page) => void }) {
+  return (
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-slate-950 px-6 py-16 text-slate-100">
+      <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-blue-600/20 blur-3xl" />
+
+      <div className="relative z-10 w-full max-w-4xl text-center">
+        <p className="mb-3 text-sm font-medium tracking-widest text-blue-400">BOOGIE AI OS</p>
+        <h1 className="bg-gradient-to-r from-white via-slate-200 to-violet-300 bg-clip-text text-5xl font-bold text-transparent md:text-6xl">
+          환영합니다
+        </h1>
+        <p className="mx-auto mt-4 max-w-xl text-lg text-slate-400">
+          스타트업의 재무·회계·행정을 대체하는 AI 통합 운영체제, 부기에 오신 것을 환영합니다.
+        </p>
+
+        <button
+          type="button"
+          onClick={() => onEnter("dashboard")}
+          className="mt-8 inline-flex items-center gap-2 rounded-xl bg-blue-500 px-8 py-3.5 text-base font-semibold text-white shadow-[0_0_24px_rgba(59,130,246,0.4)] transition hover:bg-blue-400"
+        >
+          대시보드 시작하기
+          <ArrowRight className="h-5 w-5" />
+        </button>
+      </div>
+
+      <div className="relative z-10 mt-16 grid w-full max-w-4xl gap-4 sm:grid-cols-2">
+        {featureCards.map(({ id, title, desc, icon: Icon, color }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onEnter(id)}
+            className="group rounded-xl border border-slate-800 bg-slate-900/60 p-6 text-left transition hover:border-slate-600 hover:bg-slate-900"
+          >
+            <Icon className={`mb-3 h-8 w-8 ${color}`} />
+            <h3 className="text-lg font-semibold text-white">{title}</h3>
+            <p className="mt-1 text-sm text-slate-400">{desc}</p>
+            <span className="mt-4 inline-flex items-center gap-1 text-sm text-blue-400 opacity-0 transition group-hover:opacity-100">
+              바로가기 <ArrowRight className="h-4 w-4" />
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
+  const [view, setView] = useState<View>("landing");
   const [page, setPage] = useState<Page>("dashboard");
+
+  const enterApp = (target: Page) => {
+    setPage(target);
+    setView("app");
+  };
+
+  if (view === "landing") {
+    return <LandingPage onEnter={enterApp} />;
+  }
 
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100">
       <aside className="flex w-64 shrink-0 flex-col border-r border-slate-800 bg-slate-900/50">
-        <div className="border-b border-slate-800 px-6 py-5">
+        <button
+          type="button"
+          onClick={() => setView("landing")}
+          className="border-b border-slate-800 px-6 py-5 text-left transition hover:bg-slate-800/50"
+        >
           <h1 className="text-xl font-bold text-white">부기</h1>
           <p className="text-xs text-slate-500">Boogie AI OS</p>
-        </div>
+        </button>
         <nav className="flex-1 space-y-1 p-4">
           {navItems.map(({ id, label, icon: Icon }) => (
             <button
